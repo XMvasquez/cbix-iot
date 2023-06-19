@@ -8,81 +8,107 @@ import { MdKeyboardArrowLeft, MdKeyboardArrowRight, MdOutlineWbSunny, MdSunny, M
 import colores from "../assets/colores.png";
 
 import "./luzEditComponent.css";
-import mqtt from "mqtt/dist/mqtt";
+import mqttClient from '../services/mqttConnection'
 import apic from "../services/apiService";
 export default function LuzEditComponent() {
-  //---------------------------- declaracion de varibles ---------------------------------
+    //---------------------------- declaracion de varibles ---------------------------------
 
-  const { id } = useParams(); // id
-  const [lucesData, setlucesData] = useState({});
-  const [estado, setEstado] = useState(); //Este es para el  ESTADO tonggle switch
-  const [brillo, setBrillo] = useState(); //Este para el  BRILLO slider
-  const [showValue, setShowValue] = useState(false); // mostrar valor o no
-  const [color, setColor] = useState(); //Est es para el seleccionador de COLOR
-  const [circlePosition, setCirclePosition] = useState({ x: 0, y: 0 }); //circulo de colores
-  const imgRef = useRef(null);
+    const mqttConnection = useRef();
+
+    const { id } = useParams(); // id
+    const [nombre, setNombre] = useState();
+    const [estado, setEstado] = useState(); //Este es para el  ESTADO tonggle switch
+    const [brillo, setBrillo] = useState(); //Este para el  BRILLO slider
+    const [programar, setProgramar] = useState();
+
+    const [showValue, setShowValue] = useState(false); // mostrar valor o no
+    const [color, setColor] = useState(); //Est es para el seleccionador de COLOR
+    const [circlePosition, setCirclePosition] = useState({ x: 0, y: 0 }); //circulo de colores
+    const imgRef = useRef(null);
+    const shouldRenderControls = brillo !== undefined && estado !== undefined;
 
   useEffect(() => {
-    // ----------------------------------GET a la API -----------------------
-    const fetchData = async () => {
-      try {
-        const luzis = await apic.get('/luces/' + id);
-        setlucesData({
-          nombre: luzis.luz.nombre,
-          estado: luzis.luz.estado,
-          brillo: luzis.luz.brillo,
-          programar: luzis.luz.programar,
-          color: luzis.luz.color,
-        });
-        setBrillo(luzis.luz.brillo);
-        setEstado(luzis.luz.estado);
-        setColor(luzis.luz.color);
+    mqttConnection.current = mqttClient();
+    fetchData()
+  }, [])
 
-      } catch (error) {
-        console.error('Error al obtener los datos de luces:', error);
-      }
-    };
-    fetchData();
-  },[id]);
-  const shouldRenderControls = brillo !== undefined && estado !== undefined;
-  // ----------------------------- conexion con mqtt -----------------------------------------
-  //const client = mqttConnection();
-  const client = mqtt.connect("ws://localhost:8083/mqtt"); //ws://192.168.1.81:8083/mqtt
-  client.on("connect", () => {
-    if(shouldRenderControls){
-      const nombretopic = lucesData.nombre.toLowerCase().replace(/\s/g, "");
-      client.subscribe(`domotica/luz/${nombretopic}`, (err) => {
-        if (err) {console.error("Error al suscribirse al topic de domotica/luz/sala:",err);}
-        else {console.log("Suscripción exitosa al topic domotica/luz/sala");}
+  useEffect(() => {
+    mqttConnection.current.on("connect", () => {
+        if(shouldRenderControls){
+           const nombretopic = nombre.toLowerCase().replace(/\s/g, "");
+          mqttConnection.current.subscribe(`domotica/luz/${nombretopic}`, (err) => {
+            if (err) {console.error("Error al suscribirse al topic de domotica/luz/sala:",err);}
+            else {console.log("Suscripción exitosa al topic domotica/luz/sala");}
+          });
+        }
       });
-  }
-  });
+
+  })
+
+  useEffect(() => {
+    //conexion MQTT
+    mqttConnection.current.on("message", (topicOfMessage, message) => {
+        const nombretopic = nombre.toLowerCase().replace(/\s/g, "");
+      console.log("Mensaje recibido en el topic ",topicOfMessage,":",message.toString());
+      if (topicOfMessage === `${nombretopic}`) {
+        const data = JSON.parse(message.toString());
+        setEstado(data.estado);
+        setBrillo(data.brillo);
+        setProgramar(data.programar);
+      }
+    });
+
+  }, [estado, brillo, color]);
+
+  const fetchData = async () => {
+    try {
+      const luzis = await apic.get('/luces/' + id);
+      setNombre(luzis.luz.nombre)
+      setEstado(luzis.luz.estado)
+      setBrillo(luzis.luz.brillo);
+      setProgramar(luzis.luz.programar)
+      setColor(luzis.luz.color);
+    } catch (error) {
+      console.error('Error al obtener los datos de luces:', error);
+    }
+  };
+
+  const putLuces = async () => {
+    const brokerdata = {
+      id: id,
+      nombre, // Copia todas las propiedades de "data" en "brokerdata"
+      estado,
+      brillo,
+      programar
+    };
+    if(shouldRenderControls){
+    const nombretopic = nombre.toLowerCase().replace(/\s/g, "");
+
+      mqttConnection.current.publish(`domotica/luz/${nombretopic}`,  JSON.stringify(brokerdata), (error) => {
+        if (error) {
+          console.error('Error al publicar el mensaje:', error);
+        } else {
+          console.log(`>>>>>> publicado correctamente a ${nombretopic}  :`,brokerdata);
+        }
+      });
+    }
+  };
 
   //-------------------------------------- Metodo y funciones  --------------------------------------------
 
     //Encendido y apagado de las luces
     const handleToggle = () => {
-      const newEstado = !estado; // Obtener el nuevo valor de estado
-      setEstado(newEstado); // Actualizar el estado
-      console.log("Estado de la luz:", newEstado);
+      setEstado(!estado); // Actualizar el estado
+      putLuces();
 
-      // Actualizar solo el estado en lucesData
-      setlucesData(prevData => ({
-        ...prevData,
-        estado: newEstado
-      }));
     };
 
       //Intensidad de la luz
     const handleChange = (event, newValue) => {
       setBrillo(newValue);
-      console.log(brillo);
-      console.log("Cambiando el brillo:", brillo);
-      setlucesData(prevData => ({
-        ...prevData,
-        brillo: brillo
-      }));
       setShowValue(true);
+      putLuces();
+
     };
 
     const handleMouseUp = () => {
@@ -105,6 +131,8 @@ export default function LuzEditComponent() {
       ).data;
       const color = `rgb(${pixelData[0]}, ${pixelData[1]}, ${pixelData[2]})`;
       setColor(color);
+      putLuces();
+
       const pixelPos = getPixelPosition(
         ctx,
         img.width,
@@ -112,10 +140,6 @@ export default function LuzEditComponent() {
         e.nativeEvent.offsetY
       );
       setCirclePosition({ x: pixelPos.x, y: pixelPos.y });
-      setlucesData(prevData => ({
-        ...prevData,
-        color: color
-      }));
     }
 
     function handleColorSelect(botonColor) {
@@ -173,43 +197,8 @@ export default function LuzEditComponent() {
       });
     }
 
-  useEffect(() => {
-    //conexion MQTT
-    client.on("message", (topic, message) => {
-      console.log("Mensaje recibido en el topic ",topic,":",message.toString());
-    });
 
-    return () => {
-      client.end(); // Cerrar la conexión MQTT al desmontar el componente
-    };
 
-  }, [estado, brillo, color, client]);
-
-  const putLuces = async (data) => {
-    try{console.log("Data desde el put",data);
-    const brokerdata = {
-      id: id,
-      ...data, // Copia todas las propiedades de "data" en "brokerdata"
-    };
-    if(shouldRenderControls){
-      const nombreFormateado = data.nombre.toLowerCase().replace(/\s/g, "");
-      client.publish(`domotica/luz/${nombreFormateado}`, brokerdata.toString(), (error) => {
-        if (error) {
-          console.error('Error al publicar el mensaje:', error);
-        } else {
-          console.log(`>>>>>> publicado correctamente a ${nombreFormateado}  :`,brokerdata);
-        }
-      });
-    }
-    await apic.put('/luces/'+id, data);}
-    catch (error) {
-      console.error('Error enviar las luces:', error);
-    }
-
-  };
-
-  console.log("lucesData",lucesData);
-  putLuces(lucesData);
 
 
   return (
@@ -218,7 +207,7 @@ export default function LuzEditComponent() {
         <NavLink activeClassName="active" to="/luces" className="returnboton">
           <MdKeyboardArrowLeft size={40} style={{ color: "#2141df" }} />
         </NavLink>
-        <span id="title">{lucesData.nombre}</span>
+        <span id="title">{nombre}</span>
       </div>
       <div id="controlcontainer">
         <div className="controlluces">
@@ -242,7 +231,7 @@ export default function LuzEditComponent() {
             to="/luces"
             style={{ display: "flex", alignItems: "center" }}
           >
-            <span className="bsubtitle">{lucesData.programar}</span>
+            <span className="bsubtitle">{programar}</span>
             <MdKeyboardArrowRight size={30} style={{ color: "#fff" }} />
           </NavLink>
         </div>
