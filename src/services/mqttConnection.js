@@ -6,7 +6,7 @@ const BROKER_URL: string = "ws://localhost:8083/mqtt";
 const mqttConnection = (): mqtt.MqttClient => {
   if (mqttClient == null) {
     const options: mqtt.IClientOptions = {
-      clientId: "lc-controller_Client",
+      clientId: "cbix-iot",
     };
 
     mqttClient = mqtt.connect(BROKER_URL, options);
