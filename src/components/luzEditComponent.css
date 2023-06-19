@@ -1,0 +1,229 @@
+@import url('https://fonts.googleapis.com/css?family=Product+Sans');
+:root {
+  --screen-width: calc(100vw - 16px);
+  --alto: calc(var(--screen-width)/4.5);
+}
+
+.LucesEdit {
+  background-size: cover;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  background-attachment: fixed;
+  margin: 0;
+  padding-top: 80px;
+  font-family:'Product Sans', sans-serif;
+  }
+
+.LucesEdit #title{
+  color:aliceblue;
+  font-size: 37px;
+  font-weight:500;
+  padding-left: 0px;
+}
+.LucesEdit #subtitle{
+  color:aliceblue;
+  font-size: 26px;
+  letter-spacing: 0.2px;
+  font-weight:500;
+}
+
+.LucesEdit #controlcontainer{
+   padding: 15px;
+   margin-top: 3%;
+}
+
+#controlcontainer .text{
+  display: flex;
+  flex-direction: column;
+  padding-left: 8px;
+}
+
+#controlcontainer .btitle{
+  text-decoration: none;
+  color:aliceblue;
+  font-weight: bold;
+  font-size: 17px;
+}
+#controlcontainer .bsubtitle{
+  text-decoration: none;
+  color:aliceblue;
+  font-size: 13.5px;
+  margin-top: -1px;
+}
+
+.LucesEdit #programarContainer{
+  text-decoration: none;
+  display: flex;
+  flex-direction:row;
+  align-items: center;
+  justify-content:space-between;
+  padding: 10px;
+}
+
+.LucesEdit .controlluces{
+  border-radius: 17px;
+  background-color: rgba(0, 0, 0, 0.45);
+  padding: 15px;
+  display: flex;
+  flex-direction:row;
+  align-items: center;
+  justify-content:space-between;
+  margin-bottom: 4.5%;
+  color:aliceblue;
+}
+
+/* la parte de abajo*/
+.LucesEdit #luceseditcontainer{
+  margin-top: 0%;
+  border-top-right-radius: 27px;
+  border-top-left-radius: 27px;
+  background-color: rgba(0, 0, 0, 0.45);
+  padding: 15px;
+  padding-top: 6%;
+  padding-bottom: 40px;
+  min-height:75dvh;
+  display: flex;
+  flex-direction:row;
+  justify-content:space-around;
+}
+
+#brillocontrolcontainer {
+  display:flex;
+  align-items: flex-start;
+  flex-direction: column;
+}
+#luceseditcontainer .btitle{
+  text-decoration: none;
+  color:aliceblue;
+  font-weight: bold;
+  font-size: 18px;
+  margin-bottom: 14px;
+}
+
+#slider {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  height: 68%;
+}
+
+
+#slider .luzicono{
+  position: absolute;
+  left: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 92%;
+  align-items: center;
+  width: 0%;
+  color:#333;
+}
+
+#slider> * {
+  position: relative;
+}
+
+.luzicono > *:first-child {
+  bottom: 15px;
+}
+
+.luzicono > *:last-child {
+  top: 15px;
+}
+
+.luzicono span{
+  color:#fff;
+  border-radius: 20px;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding-left: 15px;
+  padding-right: 15px;
+  font-size: 26px;
+}
+
+ .MuiSlider-track {
+  border-radius: 40px;
+  display: none;
+  padding: 1% 78%;
+}
+ .MuiSlider-rail {
+  padding: 0 80%;
+}
+
+#colorcontrolcontainer {
+  position: relative;
+  display:flex;
+  align-items: center;
+  flex-direction: column;
+  width: 65%;
+  margin-right: -7%;
+  height: 68%;
+
+}
+.imgColor{
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content:initial;
+  width: 100%;
+}
+
+#colores{
+  border-radius: 100%;
+  width: 100%;
+  margin: 0%;
+  right: 0;
+  display: flex;
+  margin-top:10% ;
+}
+
+.coloresboton{
+  display: flex;
+  flex-direction:row;
+  align-items: center;
+  justify-content:space-between;
+  margin-top: 8%;
+  width: 80%;
+  margin-bottom: 4%;
+
+}
+.coloresboton div{
+  border-radius: 100%;
+  width: 27%;
+  padding-top: 6%;
+  padding-bottom: 6%;
+  display: flex;
+  align-items:center ;
+  justify-content: center;
+}
+
+.viewcolor{
+  display: flex;
+  align-self: center;
+  width: 85%;
+  margin-top: 4%;
+  border-radius: 25px;
+  height: calc(var(--alto)/1.7);
+}
+
+.react-toggle-thumb {
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border: none;
+}
+
+.react-toggle-track{
+  background-color: #1f1f1f;
+}
+
+.react-toggle--checked:hover:not(.react-toggle--disabled) .react-toggle-track {
+  background-color: #2141df;
+}
+
+.react-toggle--checked .react-toggle-track {
+  background-color: #2141df;
+}
