@@ -23,12 +23,21 @@ export default function LuzComponent({ _id, _estado, _color, _nombre, _brillo }:
 
   useEffect(() => {
     mqttConnection.current = mqttClient();
+    const nombreFormateado = data.nombre.toLowerCase().replace(/\s/g, "");
+    mqttConnection.current.subscribe(`domotica/luz/${nombreFormateado}`, (error) => {
+      if (error) {
+        console.log("Error al subscribirse al topico: ", error);
+      } else {
+        console.log(`subscrito al topicco: domotica/luz/${nombreFormateado}`);
+      }
+    });
   }, [])
 
   useEffect(()=> {
     if (mqttConnection.current) {
+        const nombreFormateado = data.nombre.toLowerCase().replace(/\s/g, "");
         mqttConnection.current.on("message", (topicOfMessage, message) => {
-          if (topicOfMessage === `/domotica/luces/${nombre.replace(/\s/g, '')}`) {
+          if (topicOfMessage === `domotica/luz/${nombreFormateado}`) {
             const data = JSON.parse(message.toString());
             setEstado(data.estado);
             setColor(data.color);
